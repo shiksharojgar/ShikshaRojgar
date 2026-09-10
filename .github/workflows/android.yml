@@ -1,0 +1,56 @@
+name: Build ShikshaRojgar APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        run: |
+          mkdir project
+          unzip -q ShikshaRojgar-Android-Studio-Project.zip -d project
+          cd project
+          if [ -d "ShikshaRojgar-Android-Studio-Project" ]; then
+            cd ShikshaRojgar-Android-Studio-Project
+          fi
+          echo "PROJECT_DIR=$PWD" >> $GITHUB_ENV
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6'
+
+      - name: Build APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShikshaRojgar-APK
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
