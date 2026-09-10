@@ -20,12 +20,13 @@ jobs:
       - name: Extract Android project
         run: |
           mkdir project
-          unzip -q ShikshaRojgar-Android-Studio-Project.zip -d project
-          cd project
-          if [ -d "ShikshaRojgar-Android-Studio-Project" ]; then
-            cd ShikshaRojgar-Android-Studio-Project
-          fi
-          echo "PROJECT_DIR=$PWD" >> $GITHUB_ENV
+unzip -q ShikshaRojgar-Android-Studio-Project.zip -d project
+PROJECT_DIR=$(find project -name settings.gradle -printf '%h\n' | head -1)
+if [ -z "$PROJECT_DIR" ]; then
+  echo "Android project not found"
+  exit 1
+fi
+echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Setup Java
         uses: actions/setup-java@v4
